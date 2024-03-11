@@ -1,0 +1,367 @@
+Program.Sub.ScreenSU.Start
+gui.frmOption..create
+gui.frmOption..caption("Label Option")
+gui.frmOption..size(3780,3045)
+gui.frmOption..minx(0)
+gui.frmOption..miny(0)
+gui.frmOption..position(0,0)
+gui.frmOption..event(unload,frmoption_unload)
+gui.frmOption..alwaysontop(False)
+gui.frmOption..fontname("Arial")
+gui.frmOption..fontsize(8)
+gui.frmOption..forecolor(0)
+gui.frmOption..fontstyle(,,,,)
+gui.frmOption..BackColor(-2147483633)
+gui.frmOption..controlbox(True)
+gui.frmOption..maxbutton(False)
+gui.frmOption..minbutton(False)
+gui.frmOption..mousepointer(0)
+gui.frmOption..moveable(True)
+gui.frmOption..sizeable(True)
+gui.frmOption..ShowInTaskBar(True)
+gui.frmOption..titlebar(True)
+gui.frmOption.lbl1.create(label,"Extension Digit :",True,1215,255,1,325,200,True,0,Arial,8,-2147483633,0)
+gui.frmOption.lbl1.defaultvalue("")
+gui.frmOption.lbl1.controlgroup(0)
+gui.frmOption.lbl2.create(label,"Company Prefix :",True,1245,255,1,215,600,True,0,Arial,8,-2147483633,0)
+gui.frmOption.lbl2.defaultvalue("")
+gui.frmOption.lbl2.controlgroup(0)
+gui.frmOption.lbl3.create(label,"Serial Reference :",True,1335,255,1,130,1000,True,0,Arial,8,-2147483633,0)
+gui.frmOption.lbl3.defaultvalue("")
+gui.frmOption.lbl3.controlgroup(0)
+gui.frmOption.lbl4.create(label,"User Field :",True,915,255,1,635,1455,True,0,Arial,8,-2147483633,0)
+gui.frmOption.lbl4.defaultvalue("")
+gui.frmOption.lbl4.controlgroup(0)
+gui.frmOption.txtExtDigit.create(textbox,"",True,1215,300,0,1545,200,True,0,Arial,8,-2147483643,1)
+gui.frmOption.txtExtDigit.maxLength(1)
+gui.frmOption.txtExtDigit.defaultvalue("")
+gui.frmOption.txtExtDigit.controlgroup(0)
+gui.frmOption.txtCoPrefix.create(textbox,"",True,1215,300,0,1545,600,True,0,Arial,8,-2147483643,1)
+gui.frmOption.txtCoPrefix.maxLength(10)
+gui.frmOption.txtCoPrefix.defaultvalue("")
+gui.frmOption.txtCoPrefix.controlgroup(0)
+gui.frmOption.ddlSerial.create(dropdownlist)
+gui.frmOption.ddlSerial.visible(True)
+gui.frmOption.ddlSerial.size(1215,330)
+gui.frmOption.ddlSerial.zorder(0)
+gui.frmOption.ddlSerial.position(1545,1000)
+gui.frmOption.ddlSerial.enabled(True)
+gui.frmOption.ddlSerial.fontname("Arial")
+gui.frmOption.ddlSerial.fontsize(8)
+gui.frmOption.ddlSerial.defaultvalue("")
+gui.frmOption.ddlSerial.controlgroup(0)
+gui.frmOption.ddlUserfld.create(dropdownlist)
+gui.frmOption.ddlUserfld.visible(True)
+gui.frmOption.ddlUserfld.size(1215,330)
+gui.frmOption.ddlUserfld.zorder(0)
+gui.frmOption.ddlUserfld.position(1530,1455)
+gui.frmOption.ddlUserfld.enabled(True)
+gui.frmOption.ddlUserfld.fontname("Arial")
+gui.frmOption.ddlUserfld.fontsize(8)
+gui.frmOption.ddlUserfld.defaultvalue("")
+gui.frmOption.ddlUserfld.controlgroup(0)
+gui.frmOption.cmdsave.create(button)
+gui.frmOption.cmdsave.caption("Save")
+gui.frmOption.cmdsave.visible(True)
+gui.frmOption.cmdsave.size(855,375)
+gui.frmOption.cmdsave.zorder(0)
+gui.frmOption.cmdsave.position(200,2000)
+gui.frmOption.cmdsave.enabled(True)
+gui.frmOption.cmdsave.fontname("Arial")
+gui.frmOption.cmdsave.fontsize(8)
+gui.frmOption.cmdsave.event(click,cmdsave_click)
+gui.frmOption.cmdsave.defaultvalue("")
+gui.frmOption.cmdsave.controlgroup(0)
+
+
+Program.Sub.ScreenSU.End
+
+Program.Sub.Preflight.Start
+
+Program.Sub.Preflight.End
+
+Program.Sub.Main.Start
+F.Intrinsic.Control.SetErrorHandler("Main_Err")
+F.Intrinsic.Control.ClearErrors
+
+
+' RAN 06/17/2016
+' Project Name: - Quote 7577 GS1-128 Shipping Label Options Program
+' M. A. Ford Mfg. Co., Inc.
+
+
+V.Local.sError.Declare(String)
+V.Local.sCon.Declare(String)
+
+'Get Customer
+F.Intrinsic.Control.If(V.Caller.Hook,=,14350)
+	Variable.Passed.GLOBAL.set(Variable.Passed.000002.trim)
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.elseIf(V.Caller.Hook,=,14341)
+'AR> File> Customers
+	V.Passed.000067.Set("GS1 Label Opts")
+	F.Intrinsic.Control.End
+
+F.Intrinsic.Control.endif
+
+F.ODBC.Connection!conx.OpenConnection(V.Ambient.PDSN,V.Ambient.PUser,V.Ambient.PPass)
+
+F.Intrinsic.Control.If(V.Caller.Hook,=,14342)
+'Script1
+	F.Intrinsic.Control.CallSub(Loaddata)
+	Gui.frmOption..Show
+'F.Intrinsic.Control.elseIf(V.Caller.Hook,=,28532)
+F.Intrinsic.Control.elseIf(V.Caller.Hook,=,25972,"or",V.Caller.Hook,=,28532)
+''(OrderEntry>Transactions>Shipments,post-Save)
+	F.Intrinsic.Control.CallSub(Generate_checkdigit)
+	F.Intrinsic.Control.CallSub(Frmoption_unload)
+F.Intrinsic.Control.endif
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Main_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4033_ShipLabelOpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Main.End
+
+program.sub.frmoption_unload.start
+F.Intrinsic.Control.SetErrorHandler("frmoption_unload_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+
+
+F.ODBC.Connection!conx.Close
+F.Intrinsic.Control.End
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("frmoption_unload_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4033_ShipLabelOpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.frmoption_unload.End
+
+program.sub.cmdsave_click.start
+F.Intrinsic.Control.SetErrorHandler("cmdsave_click_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+
+V.Local.sSql.Declare(String)
+
+
+F.Intrinsic.String.Build("select * from GCG_4033_ShipLblOp where customer = '{0}' ",Variable.Passed.GLOBAL,V.Local.sSql)
+F.ODBC.Connection!conx.OpenRecordsetRW("RST",V.Local.sSql)
+F.Intrinsic.Control.If(V.ODBC.conx!RST.EOF,"=",True)
+	F.ODBC.conx!RST.AddNew
+F.Intrinsic.Control.Endif
+
+F.ODBC.conx!RST.Set!customer(Variable.Passed.GLOBAL)
+F.ODBC.conx!RST.Set!Extension_Digit(V.Screen.frmOption!txtExtDigit.Text)
+F.ODBC.conx!RST.Set!Company_Prefix(V.Screen.frmOption!txtCoPrefix.Text)
+
+
+F.ODBC.conx!RST.Set!Serial_Reference(V.Screen.frmOption!ddlSerial.ListIndex)
+F.ODBC.conx!RST.Set!OE_User_Field(V.Screen.frmOption!ddlUserfld.text)
+
+F.ODBC.conx!RST.Update
+
+F.ODBC.conx!RST.Close
+
+F.Intrinsic.UI.Msgbox("Saved successfully")
+
+
+
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("cmdsave_click_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4033_ShipLabelOpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+program.sub.cmdsave_click.End
+
+Program.Sub.LoadData.Start
+F.Intrinsic.Control.SetErrorHandler("LoadData_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+V.Local.sSql.Declare(String)
+
+	Gui.frmOption.ddlSerial.AddItem("Waybill")
+	Gui.frmOption.ddlSerial.AddItem("Packing List")
+
+	Gui.frmOption.ddlUserfld.AddItem("1")
+	Gui.frmOption.ddlUserfld.AddItem("2")
+	Gui.frmOption.ddlUserfld.AddItem("3")
+	Gui.frmOption.ddlUserfld.AddItem("4")
+	Gui.frmOption.ddlUserfld.AddItem("5")
+
+
+	F.Intrinsic.String.Build("select * from GCG_4033_ShipLblOp where customer = '{0}' ",Variable.Passed.GLOBAL,V.Local.sSql)
+	F.ODBC.Connection!conx.OpenRecordsetRO("RST",V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.conx!RST.EOF,"=",False)
+		Gui.frmOption.txtExtDigit.text(V.ODBC.conx!RST.FieldVal!Extension_Digit)
+		Gui.frmOption.txtCoPrefix.text(V.ODBC.conx!RST.FieldVal!Company_Prefix)
+		Gui.frmOption.ddlSerial.ListIndex(V.ODBC.conx!RST.FieldVal!Serial_Reference)
+
+		Gui.frmOption.ddlUserfld.text(V.ODBC.conx!RST.FieldVal!OE_User_Field)
+	F.Intrinsic.Control.endif
+	F.ODBC.conx!RST.Close
+
+
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("LoadData_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4033_ShipLabelOpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.LoadData.End
+
+Program.Sub.Generate_checkdigit.Start
+F.Intrinsic.Control.SetErrorHandler("Generate_checkdigit_Err")
+F.Intrinsic.Control.ClearErrors
+
+V.Local.sError.Declare(String)
+
+
+V.Local.sRet.Declare(String)
+V.local.i.Declare(Long)
+V.local.lTot1.Declare(Long)
+V.local.lTot2.Declare(Long)
+V.local.lTot3.Declare(Long)
+V.local.lTot4.Declare(Long)
+V.Local.sSql.Declare(String)
+V.local.lChkDigit.Declare(Long)
+V.Local.sSerilaRef.Declare(String)
+V.local.bRet.Declare(Boolean)
+V.Local.sOrdno.Declare(String)
+V.Local.sOrdsuffix.Declare(String)
+
+V.Local.sCust.Declare(String)
+V.Local.sPklst.Declare(String)
+
+
+' there are 2 post save hook - new & modify
+F.Intrinsic.Control.If(V.Caller.Hook,=,25972)
+'modify
+	V.Local.sCust.Set(Variable.Passed.000006.trim)
+	V.Local.sPklst.Set(Variable.Passed.000003.trim)
+	V.Local.sOrdno.Set(Variable.Passed.000150.Trim)
+F.Intrinsic.Control.elseIf(V.Caller.Hook,=,28532)
+'new
+	V.Local.sCust.Set(Variable.Passed.000204.trim)
+	V.Local.sPklst.Set(Variable.Passed.000168.trim)
+	V.Local.sOrdno.Set(Variable.Passed.FIRST-ORDER.trim)
+F.Intrinsic.Control.EndIf
+
+F.Intrinsic.String.Build("select * from GCG_3847_UCCGS1 where customer = '{0}' ",V.Local.sCust,V.Local.sSql)
+
+	F.ODBC.Connection!conx.OpenRecordsetRO("RST",V.Local.sSql)
+	F.Intrinsic.Control.If(V.ODBC.conx!RST.EOF,"=",False)
+
+
+		F.Intrinsic.Control.If(V.ODBC.conx!RST.FieldVal!Serial_Reference,=,0)
+			'0 - Waybill
+			V.Local.sSerilaRef.Set(V.passed.000178)
+		F.Intrinsic.Control.ElseIf(V.ODBC.conx!RST.FieldVal!Serial_Reference,=,1)
+			'1 - Packinglist
+'			V.Local.sSerilaRef.Set(V.passed.000168)
+			'Variable.Passed.000003
+			V.Local.sSerilaRef.Set(V.Local.sPklst)
+
+		F.Intrinsic.Control.EndIf
+
+'For each of the 17 digits that make up the Extension Digit + Company Prefix + Serial Number, beginning with a 3, multiply every digit by 3 or 1, alternatively.
+'Get a sum of the resulting products. Subtract that sum from the nearest equal or higher multiple of 10.
+
+		F.Intrinsic.String.Build("{0}{1}{2}",V.ODBC.conx!RST.FieldVal!Extension_Digit,V.ODBC.conx!RST.FieldVal!Company_Prefix,V.Local.sSerilaRef.trim,V.Local.sRet)
+
+		Function.Intrinsic.String.LimitSplit(V.Local.sRet,1,V.Local.sRet)
+
+		F.Intrinsic.Control.For(V.local.i,0,V.Local.sRet.UBound,1)
+			F.Intrinsic.Control.If(V.local.bRet,=,False)
+				F.Intrinsic.Math.Mult(V.Local.sRet(V.local.i),3,V.local.lTot1)
+				V.local.bRet.set(True)
+			F.Intrinsic.Control.Else
+				F.Intrinsic.Math.Mult(V.Local.sRet(V.local.i),1,V.local.lTot1)
+				V.local.bRet.set(False)
+			F.Intrinsic.Control.endif
+			F.Intrinsic.Math.Add(V.local.lTot3,V.local.lTot1,V.local.lTot3)
+		F.Intrinsic.Control.Next(V.local.i)
+
+'get remainder
+		F.Intrinsic.Math.Mod(V.local.lTot3,10,V.local.lTot2)
+
+'no remainder
+		Function.Intrinsic.Math.IDIV(V.local.lTot3,10,V.local.lTot4)
+		Function.Intrinsic.Math.Mult(V.local.lTot4,10,V.local.lTot4)
+
+'nearest equal or higher multiple of 10
+		F.Intrinsic.Control.If(V.local.lTot2,>,4)
+			Function.Intrinsic.Math.add(V.local.lTot4,10,V.local.lTot4)
+		F.Intrinsic.Control.EndIf
+
+		F.Intrinsic.Math.Sub(V.local.lTot3,V.local.lTot4,V.Local.lChkDigit)
+
+'get User Field
+		F.Intrinsic.String.Build("User_{0}",V.ODBC.conx!RST.FieldVal!OE_User_Field,V.Local.sRet)
+	
+'Variable.Passed.000150 - orderno
+
+'		V.Local.sOrdno.Set(Variable.Passed.000150)
+		F.Intrinsic.String.LPad(V.Local.sOrdno.Trim,"0",7,V.Local.sOrdno)
+F.Intrinsic.Debug.Stop
+
+		F.Intrinsic.String.Build("00{0}{1}{2}{3}",V.ODBC.conx!RST.FieldVal!Extension_Digit,V.ODBC.conx!RST.FieldVal!Company_Prefix,V.Local.sSerilaRef,V.local.lChkDigit.String,V.Local.sSerilaRef)
+
+		F.Intrinsic.String.Build("Update order_header set {0} = '{1}' where order_no = '{2}' and  rtrim(ltrim(record_no)) = 'A' ",V.Local.sRet,V.Local.sSerilaRef,V.Local.sOrdno,V.Local.sSql)
+
+		F.ODBC.Connection!conx.Execute(V.Local.sSql)
+		
+	F.Intrinsic.Control.endif
+	F.ODBC.conx!RST.Close
+
+	
+
+
+
+F.Intrinsic.Control.ExitSub
+
+F.Intrinsic.Control.Label("Generate_checkdigit_Err")
+F.Intrinsic.Control.If(V.Ambient.ErrorNumber,<>,0)
+	Function.Intrinsic.String.Concat("Project: GCG_4033_ShipLabelOpt.gas",V.Ambient.Newline,V.Ambient.Newline,"Subroutine: ",V.Ambient.CurrentSubroutine,V.Ambient.NewLine,"Error Occurred ",V.Ambient.ErrorNumber," with description ",V.Ambient.ErrorDescription,V.Local.sError)
+	F.Intrinsic.UI.Msgbox(V.Local.sError)
+Function.Intrinsic.Control.EndIf
+
+
+Program.Sub.Generate_checkdigit.End
+
+Program.Sub.Comments.Start
+${$0$}$GCG_3847_UCCGS1$}$RAN$}$5/18/2016$}$False
+Program.Sub.Comments.End
+
